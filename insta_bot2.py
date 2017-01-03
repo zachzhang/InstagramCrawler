@@ -66,7 +66,9 @@ class InstaBot():
 
         next_max_id =   dict([ ( loc,'') for loc in loc_id])
 
-        for i in range(20):
+        count = 0
+
+        while True:
 
             for loc in loc_id:
 
@@ -79,7 +81,8 @@ class InstaBot():
 
                 for id in list(user_ids):
                     if id not in self.df.index:
-                        print id
+                        print id , count, media_id['more_available']
+                        count +=1
                         self.mh_users.loc[id] = [time.time()]
 
             self.mh_users.to_csv("mh_users",index=True)
