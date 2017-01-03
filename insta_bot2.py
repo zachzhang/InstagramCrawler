@@ -85,7 +85,7 @@ class InstaBot():
                         count +=1
                         self.mh_users.loc[id] = [time.time()]
 
-            self.mh_users.to_csv("mh_users",index=True)
+            self.mh_users.to_csv("mh_users.csv",index=True)
 
 tags = ['photography','design','sketch','designercon','sketchaday']
 ibot = InstaBot()
