@@ -9,7 +9,7 @@ class InstaBot():
     def __init__(self,fname = 'users.csv'):
 
         #InstagramAPI = InstagramAPI("zach_zhang5", "zachariah36")
-        self.insta_api = InstagramAPI("zachzhang36", "zachariah36")
+        self.insta_api = InstagramAPI("mr_falafell", "zachariah36")
 
         self.insta_api.login()
 
@@ -28,12 +28,12 @@ class InstaBot():
 
         next_max_id =   dict([ ( tag,'') for tag in tags])
 
-        for i in range(2):
-        #while True:
+        count = 0
+
+        while True:
+
 
             for tag in tags:
-
-                print tag
 
                 self.insta_api.getHashtagFeed( tag, maxid=next_max_id[tag])
                 media_id = self.insta_api.LastJson
@@ -43,16 +43,23 @@ class InstaBot():
                 #unique users
                 user_ids = set([ x["user"]["pk"] for x in media_id["items"]])
 
-                for id in list(user_ids)[0:4]:
+                for id in list(user_ids):
                     if id not in self.df.index:
 
-                        print id
+                        print id , count
+                        count += 1
                         self.insta_api.follow(id)
-                        #self.insta_api.unfollow(id)
+                        self.insta_api.unfollow(id)
 
                         self.df.loc[id] = [0,tag,time.time()]
 
             self.df.to_csv("users.csv",index=True)
+
+    def getUserData(self,user_id):
+
+
+
+
 
     def searchArea(self,location):
 
@@ -87,11 +94,15 @@ class InstaBot():
 
             self.mh_users.to_csv("mh_users.csv",index=True)
 
-tags = ['photography','design','sketch','designercon','sketchaday']
+tags = ['falafel']
+
 ibot = InstaBot()
 
-ibot.searchArea(['Morgan Hill, California'])
+#ibot.searchArea(['Morgan Hill, California'])
 #ibot.run(tags)
+
+users = 
+
 
 '''
 
