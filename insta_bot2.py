@@ -57,7 +57,7 @@ class InstaBot():
 
     def getUserData(self,user_id):
 
-
+        self.df = pd.read_csv('users.csv', index_col=0)
 
 
 
@@ -101,7 +101,9 @@ ibot = InstaBot()
 #ibot.searchArea(['Morgan Hill, California'])
 #ibot.run(tags)
 
-users = 
+users = pd.read_csv('users.csv')
+
+print ibot.shape, ibot.keys()
 
 
 '''
