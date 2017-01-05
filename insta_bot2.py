@@ -53,10 +53,34 @@ class InstaBot():
 
                         self.df.loc[id] = [0,tag,time.time()]
 
+
             self.df.to_csv("users.csv",index=True)
 
     def getUserData(self,user_id):
 
+        start =time.time()
+
+        self.insta_api.getUsernameInfo(user_id)
+
+        print self.insta_api.LastJson
+        
+        maxid = ''
+        more = True
+
+
+        while more:
+
+            self.insta_api.getUserFeed( user_id, maxid = maxid)
+
+            user_feed = self.insta_api.LastJson
+
+
+            if 'next_max_id' in user_feed:
+                maxid =  user_feed['next_max_id']
+
+
+
+        print time.time() - start
         self.df = pd.read_csv('users.csv', index_col=0)
 
 
@@ -100,6 +124,13 @@ ibot = InstaBot()
 
 #ibot.searchArea(['Morgan Hill, California'])
 #ibot.run(tags)
+
+users =  pd.read_csv('users.csv')
+
+u_ids = users.iloc[:,0].values
+
+print ibot.getUserData(u_ids[0])
+
 
 users = pd.read_csv('users.csv')
 
