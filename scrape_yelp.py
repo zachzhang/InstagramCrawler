@@ -1,5 +1,3 @@
-from yelp.client import Client
-from yelp.oauth1_authenticator import Oauth1Authenticator
 
 import requests
 import BeautifulSoup
@@ -18,6 +16,8 @@ for anchor in soup.findAll('li'):
     
     if 'data-photo-id' in str_anch:
         img_id = str_anch.split('"')[1]
+
+        print img_id
 
         urllib.urlretrieve( img_url.format(img_id) , "./yelp_imgs/{}.jpg".format(img_id))
 

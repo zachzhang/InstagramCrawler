@@ -48,8 +48,15 @@ class InstaBot():
 
                         print id , count
                         count += 1
+                        
                         self.insta_api.follow(id)
-                        self.insta_api.unfollow(id)
+                        cont = self.insta_api.unfollow(id)
+
+                        while cont == False:
+                            
+                            print "Out of Requests - Sleeping"
+                            time.sleep(600)
+                            cont = self.insta_api.unfollow(id)
 
                         self.df.loc[id] = [0,tag,time.time()]
 
@@ -83,6 +90,9 @@ class InstaBot():
         print time.time() - start
         self.df = pd.read_csv('users.csv', index_col=0)
 
+    def postImg(self,fn):
+    
+        self.insta_api.uploadPhoto(fn)
 
 
     def searchArea(self,location):
@@ -118,68 +128,15 @@ class InstaBot():
 
             self.mh_users.to_csv("mh_users.csv",index=True)
 
-tags = ['falafel']
+
+
+
+tags = ['shawarma']
 
 ibot = InstaBot()
 
 #ibot.searchArea(['Morgan Hill, California'])
-#ibot.run(tags)
+ibot.run(tags)
 
-users =  pd.read_csv('users.csv')
+#ibot.postImg('yelp_imgs/oqZAGMH6xYCU7u0gs7PwjA.jpg')
 
-u_ids = users.iloc[:,0].values
-
-print ibot.getUserData(u_ids[0])
-
-
-users = pd.read_csv('users.csv')
-
-print ibot.shape, ibot.keys()
-
-
-'''
-
-    #print u_ids
-#print media_id["ranked_items"]
-
-
-
-InstagramAPI.searchUsername('maximillionz')
-
-test= InstagramAPI.LastJson
-
-#InstagramAPI.getUserTags(test['user']['pk'])
-
-#test2 = InstagramAPI.LastJson
-
-InstagramAPI.getTotalUserFeed(test['user']['pk'])
-
-test2 = InstagramAPI.LastJson
-
-print test2.keys()
-print len(test2['items'])
-print test2['items'][0].keys()
-print test2['items'][0]['caption']
-
-#print test2.keys()
-#print test2['items'][0].keys()
-
-#print len(test2['items'])
-
-#print test2['items'][0]['usertags']
-
-#print test2['items'][0]
-#InstagramAPI.getUsernameInfo( 'maximillionz')
-
-#test2= InstagramAPI.LastJson
-
-#print test['user']['pk']
-
-#InstagramAPI.follow(test['user']['pk'])
-
-#print test.keys()
-#print test['users']
-
-
-
-'''
