@@ -49,14 +49,16 @@ class InstaBot():
                         print id , count
                         count += 1
                         
-                        self.insta_api.follow(id)
-                        cont = self.insta_api.unfollow(id)
+                        followed =self.insta_api.follow(id)
+                        unfollowed = self.insta_api.unfollow(id)
 
-                        while cont == False:
+                        time.sleep(2)
+
+                        while followed == False:
                             
                             print "Out of Requests - Sleeping"
                             time.sleep(600)
-                            cont = self.insta_api.unfollow(id)
+                            followed = self.insta_api.follow(id)
 
                         self.df.loc[id] = [0,tag,time.time()]
 
