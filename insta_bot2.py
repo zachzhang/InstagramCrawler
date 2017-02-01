@@ -2,68 +2,116 @@ from InstagramAPI import InstagramAPI
 import pandas as pd
 import time
 import os.path
+import numpy as np
 
 class InstaBot():
 
 
-    def __init__(self,fname = 'users.csv'):
+    def __init__(self,tags, follow_rate, fname = 'users.csv'):
 
-        #InstagramAPI = InstagramAPI("zach_zhang5", "zachariah36")
-        self.insta_api = InstagramAPI("mr_falafell", "zachariah36")
+        self.follows_per_day = follow_rate
+
+        self.tags = tags
+
+        self.insta_api = InstagramAPI("mr_falafel_mh", "zachariah36")
 
         self.insta_api.login()
 
-        self.all_ids = []
-
         new_file = os.path.isfile(fname)
+        start_of_feed = os.path.isfile('next_max_id.csv')
 
         if new_file:
             self.df= pd.read_csv('users.csv',index_col=0)
         else:
-            columns = ['FollowBack','Tag','Date']
+            columns = ['FollowBack', 'Following' , 'Tag' , 'Date']
             self.df = pd.DataFrame(columns=columns)
 
+        if start_of_feed:
+            self.next_max_id =  pd.read_csv('next_max_id.csv',index_col=0)
+            self.next_max_id[pd.isnull(self.next_max_id)] = ''
 
-    def run(self,tags):
+        else:
+            columns = ['next_max_id']
+            self.next_max_id = pd.DataFrame(columns=columns)
+            for tag in tags:
+                self.next_max_id.loc[tag] = ['']
 
-        next_max_id =   dict([ ( tag,'') for tag in tags])
+    def createSchedule(self):
+
+        #Strat 1: follow for 16 hours a day and 8 hour rest, rand start
+
+        active_time = 18*60*60
+
+        rest_time = 24*60*60 - active_time
+
+        avg_gap = 18*60*60 / float(self.follows_per_day)
+
+        schedule = [ avg_gap + 10 * np.random.randn()]
+
+        return schedule,rest_time
+
+
+    def run(self):
 
         count = 0
 
-        while True:
+        schedule,rest = self.createSchedule()
 
+        for s in schedule:
 
             for tag in tags:
 
-                self.insta_api.getHashtagFeed( tag, maxid=next_max_id[tag])
+                self.insta_api.getHashtagFeed( tag, maxid=self.next_max_id.loc[tag])
                 media_id = self.insta_api.LastJson
 
-                next_max_id[tag] =  media_id['next_max_id']
+                self.next_max_id.loc[tag] =  media_id['next_max_id']
 
                 #unique users
                 user_ids = set([ x["user"]["pk"] for x in media_id["items"]])
 
                 for id in list(user_ids):
+
                     if id not in self.df.index:
 
                         print id , count
                         count += 1
-                        
-                        followed =self.insta_api.follow(id)
-                        unfollowed = self.insta_api.unfollow(id)
 
-                        time.sleep(2)
+                        followed =self.insta_api.follow(id)
+
+                        time.sleep(s)
 
                         while followed == False:
                             
                             print "Out of Requests - Sleeping"
-                            time.sleep(600)
+
+                            for i in range(8):
+                                print 'Sleeping for ',i,' hours'
+                                time.sleep(60*60)
+
                             followed = self.insta_api.follow(id)
 
-                        self.df.loc[id] = [0,tag,time.time()]
+                        self.df.loc[id] = [0,1,tag,time.time()]
 
+                self.next_max_id.to_csv('next_max_id.csv', index=True)
 
             self.df.to_csv("users.csv",index=True)
+
+
+        self.insta_api.logout()
+        time.sleep(rest)
+        self.insta_api.login()
+
+
+    def dump_followers(self,n):
+
+        followers = self.df[ (self.df['Following'] == 1) & ( self.df['Date'] <  (time.time() - 24*60*60*3  ) )]
+        followers = list(followers.index)
+
+        for i in range(min(n , len(followers))):
+
+            unfollowed = self.insta_api.unfollow(followers[i])
+
+            time.sleep(20)
 
     def getUserData(self,user_id):
 
@@ -92,53 +140,13 @@ class InstaBot():
         print time.time() - start
         self.df = pd.read_csv('users.csv', index_col=0)
 
-    def postImg(self,fn):
-    
-        self.insta_api.uploadPhoto(fn)
 
 
-    def searchArea(self,location):
+tags =['phone', 'iphone', 'customize' , 'cutephonecase' , 'customphonecase','phonecase',
+       'iphonecase', 'case' ,'new' ,'lit','dope','entreprenur','invention','custom','cool',
+       'puppy','kitten','cat','dog', 'instamood','iphoneonly','igdaily','follow4follow',
+       'basketball','football','baseball','edc','edmlifestyle','edmsf','coachella','rave', 'skrillex','herobust']
 
-        columns = [ 'Date']
-        self.mh_users = pd.DataFrame(columns=columns)
+ibot = InstaBot(tags,200)
 
-
-        self.insta_api.searchLocation( location[0])
-
-        loc_id  = [self.insta_api.LastJson['items'][0]['location']['facebook_places_id'] ]
-
-        next_max_id =   dict([ ( loc,'') for loc in loc_id])
-
-        count = 0
-
-        while True:
-
-            for loc in loc_id:
-
-                self.insta_api.getLocationFeed( loc, maxid=next_max_id[loc])
-                media_id = self.insta_api.LastJson
-
-                next_max_id[loc] =  media_id['next_max_id']
-
-                user_ids = set([x["user"]["pk"] for x in media_id["items"]])
-
-                for id in list(user_ids):
-                    if id not in self.df.index:
-                        print id , count, media_id['more_available']
-                        count +=1
-                        self.mh_users.loc[id] = [time.time()]
-
-            self.mh_users.to_csv("mh_users.csv",index=True)
-
-
-
-
-tags = ['shawarma']
-
-ibot = InstaBot()
-
-#ibot.searchArea(['Morgan Hill, California'])
-ibot.run(tags)
-
-#ibot.postImg('yelp_imgs/oqZAGMH6xYCU7u0gs7PwjA.jpg')
-
+ibot.run()
